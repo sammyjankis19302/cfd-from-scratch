@@ -24,10 +24,15 @@ and power series; every algebraic step is shown.
 |---|---|---|
 | 01 | [Linear advection](01-linear-advection/) — six schemes, Taylor-series stencils, verification | **complete** |
 | 02 | Spectral analysis — numerical wavenumber, dispersion, group velocity, spurious modes | planned |
-| 03 | 2D advection | planned |
+| 03 | [2D advection](03-advection-2d/) — the 2D CFL condition, Lax–Wendroff cross term | **complete** |
 | 04 | Burgers — 1D and 2D nonlinear | planned |
 | 05 | Poisson — Jacobi, Gauss–Seidel, SOR | planned |
 | 06 | Lid-driven cavity — incompressible Navier–Stokes, Ghia validation | planned |
+
+Modules are numbered by topic, not by the order they were built. 02 is
+deliberately out of sequence: the spectral analysis is the most interesting part
+of this repository, but modules 03–05 are what the lid-driven cavity actually
+depends on, so they came first.
 
 ---
 
@@ -60,6 +65,30 @@ identical errors at exactly `C = 1/2`. Their leading dispersive coefficients
 scale as `(1 − C²)` and `(1 − C)(2 − C)`, so the ratio is `(1+C)/(2−C)`, which
 equals 1 only there. Measured `0.7648 / 1.0000 / 1.4999` against predicted
 `0.7647 / 1.0000 / 1.5000`.
+
+---
+
+## Module 03 — verification summary
+
+Diagonal advection on an exactly periodic initial condition.
+
+| Scheme | N=40 | N=320 | measured `p` | formal |
+|---|---|---|---|---|
+| Upwind-2D | 1.581e-01 | 2.372e-02 | **0.96** | 1 |
+| Lax–Wendroff-2D | 6.857e-03 | 1.071e-04 | **2.00** | 2 |
+
+Two results with no 1D analogue, both invisible to a test with flow aligned to
+an axis:
+
+**The CFL limit is the sum.** Not `Cx ≤ 1` and `Cy ≤ 1` separately, but
+`Cx + Cy ≤ 1` — so at `Cx = Cy` the limit per direction is 0.5, not 1. Measured
+on a checkerboard (the worst Von Neumann mode): neutrally stable at exactly
+`Cx + Cy = 1.00`, diverging at 1.02.
+
+**Lax–Wendroff needs a cross-derivative term.** In 2D `u_tt` grows a
+`2 cx cy u_xy` term, which vanishes when `cy = 0`. A scheme missing it measures
+a flawless 2.00 along an axis and 1.00 on a diagonal. The broken version is kept
+in the repository as a control.
 
 ---
 
