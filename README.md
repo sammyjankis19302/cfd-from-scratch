@@ -23,16 +23,16 @@ and power series; every algebraic step is shown.
 | # | Module | Status |
 |---|---|---|
 | 01 | [Linear advection](01-linear-advection/) — six schemes, Taylor-series stencils, verification | **complete** |
-| 02 | Spectral analysis — numerical wavenumber, dispersion, group velocity, spurious modes | planned |
+| 02 | [Spectral analysis](02-spectral-analysis/) — numerical wavenumber, dispersion, group velocity | **complete** |
 | 03 | [2D advection](03-advection-2d/) — the 2D CFL condition, Lax–Wendroff cross term | **complete** |
-| 04 | Burgers — 1D and 2D nonlinear | planned |
-| 05 | Poisson — Jacobi, Gauss–Seidel, SOR | planned |
-| 06 | Lid-driven cavity — incompressible Navier–Stokes, Ghia validation | planned |
+| 04 | [Burgers](04-burgers/) — 1D and 2D nonlinear, conditional upwinding, shock formation | **complete** |
+| 05 | [Poisson](05-poisson/) — Jacobi, Gauss–Seidel, SOR, manufactured solutions | **complete** |
+| 06 | [Lid-driven cavity](06-lid-driven-cavity/) — vorticity–streamfunction, Ghia validation | in progress |
 
-Modules are numbered by topic, not by the order they were built. 02 is
-deliberately out of sequence: the spectral analysis is the most interesting part
-of this repository, but modules 03–05 are what the lid-driven cavity actually
-depends on, so they came first.
+Modules are numbered by topic, not by the order they were built. 02 came last
+of the completed modules: the spectral analysis is the most interesting part of
+this repository, but 03–05 are what the lid-driven cavity depends on, so they
+came first.
 
 ---
 
@@ -89,6 +89,57 @@ on a checkerboard (the worst Von Neumann mode): neutrally stable at exactly
 `2 cx cy u_xy` term, which vanishes when `cy = 0`. A scheme missing it measures
 a flawless 2.00 along an axis and 1.00 on a diagonal. The broken version is kept
 in the repository as a control.
+
+---
+
+## Module 02 — resolving power is not order of accuracy
+
+Feed `exp(ikx)` into a stencil and compare what comes back against the exact
+derivative. The **numerical wavenumber** `k_num` is complex: its real part
+carries dispersion, its imaginary part dissipation. All eight closed forms
+verified against the stencils to `1e-14` or better.
+
+**Points per wavelength for 1% phase error:**
+
+| stencil | order | PPW |
+|---|---|---|
+| BD-1 | 1 | **25.6** |
+| CD-2 | 2 | **25.6** |
+| CD-4 | 4 | **8.3** |
+
+BD-1 and CD-2 need *identical* resolution despite differing in formal order —
+they share the real part `sin(K)/K`, and phase error lives entirely there. A
+convergence study cannot distinguish them on this axis at all.
+
+**Group velocity changes sign at 4 points per wavelength.** For CD-2,
+`V_g/c = cos(K)`, so under-resolved modes carry energy *upstream* at up to full
+speed — the spurious q-waves. Invisible to convergence studies (they vanish as
+`Δx → 0`) and to stability analysis (`|G| ≤ 1` throughout).
+
+---
+
+## Module 06 — what first-order upwind costs
+
+The cavity solver advects vorticity with first-order upwind, which module 01
+showed adds a real diffusion `ν_num = |u|Δx(1−C)/2`. In the vorticity transport
+equation that sits directly alongside the physical `ν`:
+
+| case | grid | `ν` | `ν_num` | ratio | `Re_eff` |
+|---|---|---|---|---|---|
+| Re=100 | 101² | 0.0100 | 0.00450 | 0.45 | 69 |
+| Re=400 | 101² | 0.0025 | 0.00450 | **1.80** | 143 |
+| Re=1000 | 101² | 0.0010 | 0.00450 | **4.50** | 182 |
+
+(near the lid; interior speeds give `Re_eff` of 91, 287, 505)
+
+Since `ν_num` depends on `Δx` and not on `ν`, raising the target Reynolds number
+at fixed grid eventually lets it dominate. This predicts — before any comparison
+is run — that agreement with the Ghia benchmark should be good at Re = 100,
+degrade sharply between 400 and 1000, and improve under grid refinement by *more*
+at high Re than at low Re.
+
+Corollary: `ν_num → |u|Δx/2` as `Δt → 0`, so **shrinking the timestep makes
+numerical diffusion worse**. Only refining `Δx` reduces it.
 
 ---
 
