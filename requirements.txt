@@ -1,0 +1,4 @@
+# Everything in this repository runs on these two.
+# No CFD libraries: every scheme and solver is written from the discretisation up.
+numpy
+matplotlib
