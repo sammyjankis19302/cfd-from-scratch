@@ -1,0 +1,7 @@
+# Ghia, Ghia & Shin (1982), Table V: properties of the primary and secondary vortices
+# Transcribed from the paper (OCR cleaned: "-0. I 17929" -> -0.117929).
+# psi_min = primary vortex streamfunction; x,y = its location
+Re,psi_min,x,y
+100,-0.103423,0.6172,0.7344
+400,-0.113909,0.5547,0.6055
+1000,-0.117929,0.5313,0.5625

@@ -94,6 +94,24 @@ vortex — 0.015%.
 The ratio crosses 1 between Re = 400 and Re = 1000, and that is exactly where
 the error jumps. Predictions 1 and 2 (below) confirmed.
 
+### Primary vortex (Ghia Table V)
+
+| Re | `ψ_min` present | `ψ_min` Ghia | error | location present | location Ghia | distance |
+|---|---|---|---|---|---|---|
+| 100 | −0.103439 | −0.103423 | **0.02%** | (0.6100, 0.7400) | (0.6172, 0.7344) | **0.0091** |
+| 400 | −0.106344 | −0.113909 | 6.64% | (0.5800, 0.6400) | (0.5547, 0.6055) | 0.0428 |
+| 1000 | −0.098759 | −0.117929 | 16.26% | (0.5500, 0.6100) | (0.5313, 0.5625) | 0.0510 |
+
+At Re = 100 the vortex location is within **0.0091**, less than one grid spacing
+(`Δx = 0.01`). A stronger check than the centrelines: it tests strength and
+position of a global flow feature, not values along one line.
+
+![centreline validation](figures/centreline_validation.png)
+
+![error vs numerical viscosity](figures/error_vs_numerical_viscosity.png)
+
+![streamfunction](figures/streamfunction.png)
+
 ### Where the Re = 1000 error lives
 
 ```
@@ -174,7 +192,8 @@ answer.
 | `src/cavity.py` | Vectorised solver — boundary `u`/`v` fixed, residual-based SOR Poisson, saves fields |
 | `src/numerical_viscosity.py` | `ν_num`, `Re_cell`, `Re_eff`, and the case table |
 | `src/ghia_compare.py` | Centreline extraction, interpolation, error metrics |
-| `reference/` | Ghia 1982 Tables I and II, Re = 100 / 400 / 1000 |
+| `reference/` | Ghia 1982 Tables I, II and V, Re = 100 / 400 / 1000 |
+| `runs/make_figures.py` | Regenerates every figure from the saved runs |
 | `runs/run_study.py` | Runs the parameter study, saves `.npz` per case |
 | `runs/compare_all.py` | Error tables for every finished run |
 | `tests/` | Eight checks across two suites |
@@ -209,6 +228,7 @@ python3 runs/run_study.py            # all six cases (slow)
 python3 runs/run_study.py 1000 201   # one case
 python3 runs/compare_all.py          # summary
 python3 runs/compare_all.py --full   # point by point
+python3 runs/make_figures.py         # regenerates figures/
 ```
 
 ---
