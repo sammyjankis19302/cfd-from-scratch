@@ -122,10 +122,22 @@ including the sign change.
 The originals are kept unchanged. Every formula in them was verified correct to
 machine precision before anything was built on top.
 
+## Figures
+
+![first derivative](figures/first_derivative.png)
+
+Dispersion (left), dissipation (centre), group velocity (right). BD-1, FD-1 and
+CD-2 share a real part, so they lie on top of each other in the first panel and
+separate completely in the second. The dotted line in the third panel marks
+4 points per wavelength, where CD-2's group velocity changes sign.
+
+![second derivative](figures/second_derivative.png)
+
 ## Running
 
 ```bash
 python3 tests/test_spectral.py
+python3 experiments/make_figures.py   # regenerates figures/
 ```
 
 ---
