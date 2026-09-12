@@ -27,7 +27,7 @@ and power series; every algebraic step is shown.
 | 03 | [2D advection](03-advection-2d/) — the 2D CFL condition, Lax–Wendroff cross term | **complete** |
 | 04 | [Burgers](04-burgers/) — 1D and 2D nonlinear, conditional upwinding, shock formation | **complete** |
 | 05 | [Poisson](05-poisson/) — Jacobi, Gauss–Seidel, SOR, manufactured solutions | **complete** |
-| 06 | [Lid-driven cavity](06-lid-driven-cavity/) — vorticity–streamfunction, Ghia validation | in progress |
+| 06 | [Lid-driven cavity](06-lid-driven-cavity/) — vorticity–streamfunction, Ghia validation | **validated at Re = 100** |
 
 Modules are numbered by topic, not by the order they were built. 02 came last
 of the completed modules: the spectral analysis is the most interesting part of
@@ -133,10 +133,26 @@ equation that sits directly alongside the physical `ν`:
 (near the lid; interior speeds give `Re_eff` of 91, 287, 505)
 
 Since `ν_num` depends on `Δx` and not on `ν`, raising the target Reynolds number
-at fixed grid eventually lets it dominate. This predicts — before any comparison
-is run — that agreement with the Ghia benchmark should be good at Re = 100,
-degrade sharply between 400 and 1000, and improve under grid refinement by *more*
-at high Re than at low Re.
+at fixed grid eventually lets it dominate. That predicts — before any comparison
+is run — good agreement at Re = 100 and sharp degradation between 400 and 1000.
+
+**Measured, against Ghia's Tables I, II and V:**
+
+| Re | u RMSE | u rel% | `ψ_min` present | `ψ_min` Ghia | error | vortex location error |
+|---|---|---|---|---|---|---|
+| 100 | **0.00529** | 1.95% | −0.103439 | −0.103423 | **0.02%** | 0.0091 (< 1 cell) |
+| 400 | 0.03968 | 21.96% | −0.106344 | −0.113909 | 6.64% | 0.0428 |
+| 1000 | 0.09834 | 38.68% | −0.098759 | −0.117929 | 16.26% | 0.0510 |
+
+At Re = 100 the primary vortex strength matches to **0.02%** and its location to
+less than one grid spacing. The degradation with Re tracks `ν_num/ν`, which goes
+0.45 → 1.50 → 3.00 across the three cases, crossing 1 exactly where the error
+jumps.
+
+The Re = 1000 error is also *structured*: small near the lid, an order of
+magnitude larger near the bottom wall, and always in the direction of too weak.
+That is the bottom-left secondary vortex, which excess diffusion destroys first
+while the primary vortex survives.
 
 Corollary: `ν_num → |u|Δx/2` as `Δt → 0`, so **shrinking the timestep makes
 numerical diffusion worse**. Only refining `Δx` reduces it.
@@ -146,7 +162,7 @@ numerical diffusion worse**. Only refining `Δx` reduces it.
 ## Running
 
 ```bash
-pip install numpy matplotlib
+pip install -r requirements.txt
 cd 01-linear-advection
 python3 advection_1d.py          # standalone upwind solver, explicit loops
 python3 demo.py                  # all six schemes compared
