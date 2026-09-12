@@ -7,7 +7,7 @@ velocities by central differences (module 01), wall vorticity from ghost points,
 vorticity advected by conditional upwinding (module 04) with central diffusion,
 marched explicitly.
 
-**Status: solver complete and running; Ghia comparison in progress.**
+**Status: validated at Re = 100. Higher-Re disagreement measured and attributed.**
 
 ---
 
@@ -68,6 +68,58 @@ reduces it.
 
 ---
 
+## Validation against Ghia (1982)
+
+101×101, interpolated to Ghia's tabulated coordinates (which are 129-grid
+points and do not coincide with a 101 grid).
+
+| Re | u `L∞` | u RMSE | u rel% | v `L∞` | v RMSE | v rel% | `ψ_min` | steady |
+|---|---|---|---|---|---|---|---|---|
+| 100 | 0.00991 | **0.00529** | 1.95% | 0.00569 | 0.00291 | 2.39% | −0.103439 | yes |
+| 400 | 0.08322 | **0.03968** | 21.96% | 0.07234 | 0.04464 | 21.79% | −0.106344 | yes |
+| 1000 | 0.20625 | **0.09834** | 38.68% | 0.17276 | 0.10482 | 32.78% | −0.098759 | **no** |
+
+**Re = 100 is a genuine validation.** ~2% mean relative error on both
+centrelines, and `ψ_min = −0.103439` against Ghia's −0.103423 for the primary
+vortex — 0.015%.
+
+### The degradation follows the prediction
+
+| Re | `ν` | `ν_num` | ratio | u RMSE |
+|---|---|---|---|---|
+| 100 | 0.0100 | 0.00450 | 0.45 | 0.00529 |
+| 400 | 0.0025 | 0.00375 | 1.50 | 0.03968 |
+| 1000 | 0.0010 | 0.00300 | 3.00 | 0.09834 |
+
+The ratio crosses 1 between Re = 400 and Re = 1000, and that is exactly where
+the error jumps. Predictions 1 and 2 (below) confirmed.
+
+### Where the Re = 1000 error lives
+
+```
+y = 0.1719   Ghia -0.38289   mine -0.20015   diff +0.18274
+y = 0.1016   Ghia -0.29730   mine -0.09105   diff +0.20625
+y = 0.0703   Ghia -0.22220   mine -0.05308   diff +0.16912
+```
+
+Near the lid the error is small (0.004–0.017); near the bottom wall it is an
+order of magnitude larger, and uniformly in the direction of **too weak**. That
+is the bottom-left secondary vortex, which excess diffusion damages first while
+the strong primary vortex survives. The mechanism predicts not just the
+magnitude of the disagreement but its spatial signature.
+
+### An honest caveat
+
+The Re = 1000 run stopped at `dω = 5.8e-06` against `1e-7` for the other two,
+with a Poisson residual of `1.2e-03` against `3e-05`. **Part of that 38% may be
+incomplete convergence rather than numerical viscosity.** Rerun longer and check
+whether `ψ_min` moves off −0.098759. If it barely moves, the attribution is
+clean; if it moves, two effects have been conflated.
+
+`runs/compare_all.py` flags any non-steady run for this reason.
+
+---
+
 ## Reference data
 
 `reference/ghia1982_table1_u.csv` and `ghia1982_table2_v.csv` hold the Re = 100,
@@ -119,9 +171,27 @@ answer.
 | File | Purpose |
 |---|---|
 | `experiments/first_attempt_cavity.py` | The original hand-written solver, unchanged |
+| `src/cavity.py` | Vectorised solver — boundary `u`/`v` fixed, residual-based SOR Poisson, saves fields |
 | `src/numerical_viscosity.py` | `ν_num`, `Re_cell`, `Re_eff`, and the case table |
+| `src/ghia_compare.py` | Centreline extraction, interpolation, error metrics |
 | `reference/` | Ghia 1982 Tables I and II, Re = 100 / 400 / 1000 |
-| `tests/test_numerical_viscosity.py` | Four checks |
+| `runs/run_study.py` | Runs the parameter study, saves `.npz` per case |
+| `runs/compare_all.py` | Error tables for every finished run |
+| `tests/` | Eight checks across two suites |
+
+### Why the Poisson solver changed
+
+The first attempt used an absolute residual tolerance of `1e-6`. Since
+residual = `4/Δx²` × change per sweep (module 05), at N=41 that demands a change
+of ~`1e-12`: **2151 Jacobi sweeps per timestep**, which makes the solver
+unusable. Switching to a *relative* tolerance and red-black SOR gave **8.7
+sweeps per step** with `ψ_min` unchanged at −0.08982 — same answer, ~250×
+faster. Module 05 measured the scaling exponents behind that (Jacobi 2.00,
+SOR 1.04); this is where it pays.
+
+Red-black ordering is used because it vectorises: updating all red points from
+black neighbours then all black from red is Gauss–Seidel in a different sweep
+order, which removes the sequential dependency.
 
 The original solver is correct: Jacobi Poisson, ghost-point wall vorticity on all
 four walls, conditional upwinding, central diffusion, explicit Euler, the
@@ -133,6 +203,12 @@ Runs completed: grids 51/101/201, Re 100/400/1000, `t* = 50/100/200`.
 
 ```bash
 python3 tests/test_numerical_viscosity.py
+python3 tests/test_ghia_compare.py
+
+python3 runs/run_study.py            # all six cases (slow)
+python3 runs/run_study.py 1000 201   # one case
+python3 runs/compare_all.py          # summary
+python3 runs/compare_all.py --full   # point by point
 ```
 
 ---
