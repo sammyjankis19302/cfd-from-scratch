@@ -60,8 +60,8 @@ Three falsifiable statements, all made before looking at any Ghia comparison:
 
 1. **Re = 100 should agree well.** $\nu_{\text{num}}/\nu \le 0.45$, and less in
    the interior.
-2. **Agreement should degrade monotonically with Re**, sharply between 400 and
-   1000, because the ratio crosses 1 in that interval.
+2. **Agreement should degrade monotonically with Re**, and most sharply across
+   Re = 100 → 400, because that is the interval in which the ratio crosses 1.
 3. **Refining $101^2 \to 201^2$ at Re = 1000 should move the solution
    measurably toward Ghia**, because it halves $\nu_{\text{num}}$ — and the
    improvement should be *larger* than the same refinement produces at Re = 100,

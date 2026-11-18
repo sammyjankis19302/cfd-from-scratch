@@ -1,5 +1,7 @@
 # 06 — Lid-driven cavity (vorticity–streamfunction)
 
+*[← CFD from Scratch](../)  ·  module 6 of 6  ·  [← prev: Poisson](../05-poisson/)*
+
 $$\omega_t + u\,\omega_x + v\,\omega_y = \nu\nabla^2\omega, \qquad \nabla^2\psi = -\omega, \qquad u = \psi_y,\;\; v = -\psi_x$$
 
 Everything in modules 01–05 meets here. Poisson solve for `ψ` (module 05),
@@ -8,6 +10,13 @@ vorticity advected by conditional upwinding (module 04) with central diffusion,
 marched explicitly.
 
 **Status: validated at Re = 100. Higher-Re disagreement measured and attributed.**
+
+![Vorticity field with streamfunction contours at three Reynolds numbers](../figures/cavity_hero.png)
+
+The converged flow at the three Reynolds numbers studied. The lid drives the
+fluid from above; the primary vortex migrates toward the cavity centre as Re
+rises, and the corner vortices — barely present at Re = 100 — grow steadily.
+Regenerate with `python3 ../figures/make_hero.py`.
 
 ---
 
@@ -44,8 +53,8 @@ numerical viscosity is 4.5× the physical.
 ### Three predictions this makes
 
 1. Re = 100 should agree well with Ghia.
-2. Agreement should degrade monotonically with Re, sharply between 400 and 1000,
-   where the ratio crosses 1.
+2. Agreement should degrade monotonically with Re, and most sharply across
+   Re = 100 → 400, where the ratio crosses 1.
 3. Refining 101² → 201² at Re = 1000 should move the solution measurably toward
    Ghia — and by **more** than the same refinement achieves at Re = 100, where
    `ν_num` was never the limiting factor.
@@ -91,8 +100,9 @@ vortex — 0.015%.
 | 400 | 0.0025 | 0.00375 | 1.50 | 0.03968 |
 | 1000 | 0.0010 | 0.00300 | 3.00 | 0.09834 |
 
-The ratio crosses 1 between Re = 400 and Re = 1000, and that is exactly where
-the error jumps. Predictions 1 and 2 (below) confirmed.
+The ratio crosses 1 between Re = 100 and Re = 400, and that is exactly where the
+error jumps hardest — **7.5×** across that interval, against 2.5× from Re = 400
+to 1000. Predictions 1 and 2 above confirmed.
 
 ### Primary vortex (Ghia Table V)
 
@@ -108,9 +118,22 @@ position of a global flow feature, not values along one line.
 
 ![centreline validation](figures/centreline_validation.png)
 
+*Centreline velocities against Ghia's Tables I and II. At Re = 100 the
+benchmark points sit on the computed curve; by Re = 1000 they separate, and
+most of that separation is near the bottom wall.*
+
 ![error vs numerical viscosity](figures/error_vs_numerical_viscosity.png)
 
+*The same three cases plotted against the viscosity ratio `ν_num/ν` rather than
+against Re. The error rises close to linearly in that ratio across the range
+tested. The dashed line marks `ν_num = ν`; the two cases that sit beyond it are
+the two that disagree with the benchmark.*
+
 ![streamfunction](figures/streamfunction.png)
+
+*Streamfunction contours alone, with levels chosen to expose the corner
+vortices. The same fields appear over the vorticity field at the top of this
+page.*
 
 ### Where the Re = 1000 error lives
 

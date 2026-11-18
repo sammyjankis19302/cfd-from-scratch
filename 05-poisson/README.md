@@ -1,5 +1,7 @@
 # 05 — Poisson and Laplace
 
+*[← CFD from Scratch](../)  ·  module 5 of 6  ·  [← prev: Burgers](../04-burgers/)  ·  [next: Lid-driven cavity →](../06-lid-driven-cavity/)*
+
 $$\nabla^2 s = f \qquad\text{with Dirichlet boundaries}$$
 
 `f = 0` gives Laplace. For the lid-driven cavity the streamfunction satisfies
@@ -123,9 +125,20 @@ entire point of comparing these three methods.
 python3 tests/test_poisson.py
 ```
 
-## Next
+## Where this goes
 
-Module 06 couples this to vorticity transport: solve `∇²ψ = −ω` for the
-streamfunction, differentiate to get velocities, advect vorticity, repeat.
-Having verified the Poisson solve in isolation means that when the cavity
-misbehaves, this piece is already ruled out.
+[Module 06](../06-lid-driven-cavity/) couples this to vorticity transport: solve
+`∇²ψ = −ω` for the streamfunction, differentiate to get velocities, advect
+vorticity, repeat. Verifying the Poisson solve in isolation first is what let
+the cavity's later disagreement with the Ghia benchmark be attributed
+confidently to the advection scheme — this piece was already ruled out.
+
+Both results from this module showed up there in practice:
+
+- The first cavity build stopped its Poisson iteration on the **change per
+  sweep**, and paid the `4/Δx²` penalty derived above — at `N = 41` it was
+  running **2151 Jacobi sweeps per timestep**.
+- Switching to a *relative* residual tolerance and red–black SOR brought that to
+  **8.7 sweeps per step** with the answer unchanged to five decimal places.
+  That is the `O(N²)` → `O(N)` difference measured above, in a solver that
+  actually needed it.

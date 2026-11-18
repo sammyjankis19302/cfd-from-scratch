@@ -1,5 +1,7 @@
 # 02 — Global spectral analysis
 
+*[← CFD from Scratch](../)  ·  module 2 of 6  ·  [← prev: Linear advection](../01-linear-advection/)  ·  [next: 2D advection →](../03-advection-2d/)*
+
 Modules 01 and 03–05 verify schemes by refining the grid and watching the error
 fall. That is necessary and it is not sufficient. **Order of accuracy describes
 the limit `Δx → 0`. It says nothing about which scheme is more accurate on the
@@ -124,12 +126,20 @@ machine precision before anything was built on top.
 
 ## Figures
 
-![first derivative](figures/first_derivative.png)
+![numerical wavenumber, dissipation and group velocity](../figures/spectral.png)
 
-Dispersion (left), dissipation (centre), group velocity (right). BD-1, FD-1 and
-CD-2 share a real part, so they lie on top of each other in the first panel and
-separate completely in the second. The dotted line in the third panel marks
-4 points per wavelength, where CD-2's group velocity changes sign.
+Dispersion (left), dissipation (centre), group velocity (right).
+
+BD-1, FD-1 and CD-2 share a real part exactly, so in the first panel they are
+drawn as **one** curve named for all three — plotted separately, two of them are
+painted over the third and the result disappears. They separate completely in
+the second panel, where the only difference between a stable scheme and an
+explosive one is the sign. The shaded band in the third panel is where group
+velocity is negative: below four points per wavelength, energy travels upstream.
+
+Each stencil plotted on its own, including the second-derivative operators:
+
+![first derivative](figures/first_derivative.png)
 
 ![second derivative](figures/second_derivative.png)
 
@@ -137,7 +147,8 @@ separate completely in the second. The dotted line in the third panel marks
 
 ```bash
 python3 tests/test_spectral.py
-python3 experiments/make_figures.py   # regenerates figures/
+python3 experiments/make_figures.py   # regenerates this module's figures/
+python3 ../figures/make_spectral.py   # regenerates the summary figure above
 ```
 
 ---

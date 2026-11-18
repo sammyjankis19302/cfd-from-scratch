@@ -1,5 +1,7 @@
 # 04 — Burgers equation
 
+*[← CFD from Scratch](../)  ·  module 4 of 6  ·  [← prev: 2D advection](../03-advection-2d/)  ·  [next: Poisson →](../05-poisson/)*
+
 $$\text{1D:}\quad u_t + u\,u_x = \nu\,u_{xx} \qquad\qquad \text{2D:}\quad u_t + u\,u_x + v\,u_y = \nu(u_{xx}+u_{yy})$$
 
 The first nonlinear equation in this repository. The advection speed is now the

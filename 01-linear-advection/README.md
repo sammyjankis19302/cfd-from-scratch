@@ -1,5 +1,7 @@
 # 01 — Linear advection
 
+*[← CFD from Scratch](../)  ·  module 1 of 6  ·  [next: Spectral analysis →](../02-spectral-analysis/)*
+
 $$\frac{\partial u}{\partial t} + c\,\frac{\partial u}{\partial x} = 0$$
 
 The simplest PDE that transports something, and the right place to start,

@@ -1,5 +1,7 @@
 # 03 — 2D linear advection
 
+*[← CFD from Scratch](../)  ·  module 3 of 6  ·  [← prev: Spectral analysis](../02-spectral-analysis/)  ·  [next: Burgers →](../04-burgers/)*
+
 $$\frac{\partial u}{\partial t} + c_x\frac{\partial u}{\partial x} + c_y\frac{\partial u}{\partial y} = 0$$
 
 One dimension added. The exact solution is still known — `f(x − c_x t, y − c_y t)`

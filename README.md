@@ -70,9 +70,10 @@ Reynolds number at fixed grid eventually lets it dominate:
 | 400 | 0.0025 | 0.00375 | **1.50** | 0.03968 |
 | 1000 | 0.0010 | 0.00300 | **3.00** | 0.09834 |
 
-The ratio crosses 1 between Re = 400 and 1000, and that is exactly where the
-error jumps. The prediction was made from the modified equation *before* the
-comparison was run.
+The ratio crosses 1 between Re = 100 and Re = 400 — and that is exactly where
+the error jumps hardest: **7.5×** from Re = 100 to 400, against 2.5× from 400 to
+1000. The prediction came from the modified equation *before* the comparison was
+run.
 
 The Re = 1000 error is also **structured**: small near the lid, an order of
 magnitude larger near the bottom wall, and always in the direction of *too
