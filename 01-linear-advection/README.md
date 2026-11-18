@@ -12,6 +12,18 @@ hiding behind an imperfectly known answer.
 Six finite-difference schemes, implemented from the discretisation up, with the
 derivations that produce them and the tests that prove they behave as derived.
 
+![Dissipation, dispersion and measured orders of accuracy](figures/schemes_overview.png)
+
+*Left: a square wave after one full revolution. Upwind rounds the corners off —
+that is dissipation. Lax–Wendroff keeps them sharp but grows overshoot and
+undershoot — that is dispersion. They are different failures, not degrees of the
+same one.*
+
+*Right: the measured orders. Lax–Wendroff and BD-2 land on top of each other,
+which is not a plotting accident — at `C = 1/2` their leading dispersive
+coefficients, `(1 − C²)` and `(1 − C)(2 − C)`, are equal. Regenerate with
+`python3 make_figures.py`.*
+
 ---
 
 ## Verification
@@ -119,6 +131,7 @@ python3 advection_1d.py          # the standalone solver
 python3 demo.py                  # all six schemes compared
 python3 tests/test_equivalence.py
 python3 tests/test_convergence.py
+python3 make_figures.py          # regenerates figures/
 ```
 
 ---

@@ -11,6 +11,17 @@ module 06.
 Three iterative methods on the five-point stencil derived in module 01, all
 sharing one update and differing only in **which values they read on the right**.
 
+![Iteration scaling and the residual-versus-change gap](figures/iterative_solvers.png)
+
+*Left: iteration count is a complexity class, not a constant factor. Doubling the
+grid roughly quadruples Jacobi's work and merely doubles SOR's.*
+
+*Right: the stopping test that quietly lies. The blue line is what the first
+version of this solver actually measured — the change per sweep, flat at the
+declared `1e-5`. The red line is the residual it had genuinely reached. The gap
+is `4/Δx²`, and it grows as the grid refines. Regenerate with
+`python3 make_figures.py`.*
+
 ---
 
 ## Verification
@@ -123,6 +134,7 @@ entire point of comparing these three methods.
 
 ```bash
 python3 tests/test_poisson.py
+python3 make_figures.py         # regenerates figures/
 ```
 
 ## Where this goes

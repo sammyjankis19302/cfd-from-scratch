@@ -9,6 +9,17 @@ One dimension added. The exact solution is still known — `f(x − c_x t, y −
 that have no 1D analogue, and both are invisible to a test with flow aligned to
 an axis.
 
+![2D stability limit and the Lax-Wendroff cross term](figures/two_dimensional_results.png)
+
+*Left: the stability boundary, measured on a checkerboard — the exact mode the
+Von Neumann analysis names as worst case. The amplitude swings 25 orders of
+magnitude and crosses one at `Cx + Cy = 1.00`, not at `Cx = Cy = 1`.*
+
+*Right: drop the `u_xy` cross term from Lax–Wendroff and the scheme still
+measures a flawless slope −2 when the flow runs along an axis. Turn the flow
+diagonal and it collapses to slope −1. Regenerate with
+`python3 make_figures.py`.*
+
 ---
 
 ## Verification
@@ -110,4 +121,5 @@ about grids or final times.
 
 ```bash
 python3 tests/test_convergence_2d.py
+python3 make_figures.py              # regenerates figures/
 ```

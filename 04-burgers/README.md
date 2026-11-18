@@ -8,6 +8,13 @@ The first nonlinear equation in this repository. The advection speed is now the
 solution itself, which changes three things that modules 01 and 03 could not
 show.
 
+![Shock formation, the gradient against theory, and the 2D solver](figures/burgers_overview.png)
+
+*Left: a smooth sine steepens because fast parts of the wave overtake slow ones.
+Centre: the maximum gradient measured against its closed form
+`2π/(1 − 2πt)`, which diverges at `t_b = 1/2π ≈ 0.159`. Right: the 2D solver on
+the original hand-written setup. Regenerate with `python3 make_figures.py`.*
+
 ---
 
 ## What is genuinely new
@@ -115,4 +122,5 @@ numerical one**, and here it pointed straight at the theory rather than the code
 
 ```bash
 python3 tests/test_equivalence_burgers.py
+python3 make_figures.py                     # regenerates figures/
 ```

@@ -180,18 +180,26 @@ for t in leg.get_texts():
 # was.
 from matplotlib.lines import Line2D  # noqa: E402
 
-sym = [
-    Line2D([0], [0], color="#444444", lw=2.0,
-           label="present solver"),
-    Line2D([0], [0], marker="o", color="none", mec="#444444", mew=1.6,
-           ms=7, ls="none", label="Ghia et al. (1982) benchmark"),
-]
-leg2 = ax[0].legend(handles=sym, frameon=True, fontsize=9.5,
-                    loc="lower right", handletextpad=0.8, borderpad=0.7)
-leg2.get_frame().set_edgecolor(GRID)
-leg2.get_frame().set_facecolor(SURFACE)
-for t in leg2.get_texts():
-    t.set_color(INK)
+def symbol_handles():
+    return [
+        Line2D([0], [0], color="#444444", lw=2.0,
+               label="present solver"),
+        Line2D([0], [0], marker="o", color="none", mec="#444444", mew=1.6,
+               ms=7, ls="none", label="Ghia et al. (1982) benchmark"),
+    ]
+
+
+# One on EACH panel. A reader looking at only the right-hand plot must not have
+# to infer what a circle is from the other half of the figure.
+for a, loc in ((ax[0], "lower right"), (ax[1], "lower left")):
+    lg = a.legend(handles=symbol_handles(), frameon=True, fontsize=9,
+                  loc=loc, handletextpad=0.8, borderpad=0.7)
+    lg.get_frame().set_edgecolor(GRID)
+    lg.get_frame().set_facecolor(SURFACE)
+    for t in lg.get_texts():
+        t.set_color(INK)
+
+ax[1].add_artist(leg)   # keep the Re colour legend alongside the symbol one
 
 fig.suptitle("Centreline velocities: present solver vs. the Ghia, Ghia & Shin (1982) benchmark",
              color=INK, fontsize=12.5, y=0.99)
