@@ -174,7 +174,26 @@ leg = ax[1].legend(frameon=False, fontsize=9.5, loc="upper right")
 for t in leg.get_texts():
     t.set_color(INK_MUTED)
 
-fig.suptitle("Validation against Ghia, Ghia & Shin (1982)   —   lines: present solver   ·   circles: benchmark",
+# A second legend explaining the SYMBOLS, not the colours. Without it the only
+# statement that circles are the benchmark lives in the figure title, which is
+# easy to miss — the first person to read this figure asked where Ghia's data
+# was.
+from matplotlib.lines import Line2D  # noqa: E402
+
+sym = [
+    Line2D([0], [0], color="#444444", lw=2.0,
+           label="present solver"),
+    Line2D([0], [0], marker="o", color="none", mec="#444444", mew=1.6,
+           ms=7, ls="none", label="Ghia et al. (1982) benchmark"),
+]
+leg2 = ax[0].legend(handles=sym, frameon=True, fontsize=9.5,
+                    loc="lower right", handletextpad=0.8, borderpad=0.7)
+leg2.get_frame().set_edgecolor(GRID)
+leg2.get_frame().set_facecolor(SURFACE)
+for t in leg2.get_texts():
+    t.set_color(INK)
+
+fig.suptitle("Centreline velocities: present solver vs. the Ghia, Ghia & Shin (1982) benchmark",
              color=INK, fontsize=12.5, y=0.99)
 fig.tight_layout(rect=[0, 0, 1, 0.945])
 fig.savefig(os.path.join(OUT, "validation.png"), dpi=170,

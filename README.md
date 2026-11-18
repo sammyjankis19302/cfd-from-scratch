@@ -38,9 +38,12 @@ power series; every algebraic step is shown.
 
 ![Centreline velocities against Ghia, Ghia & Shin (1982)](figures/validation.png)
 
-Centreline velocities on a 101×101 grid, interpolated to Ghia's tabulated
-coordinates. Blue sits on the benchmark. Red does not — and the rest of this
-section is about why that was predictable.
+**Solid lines are this solver. Open circles are Ghia's published benchmark
+values.** Centreline velocities on a 101×101 grid, interpolated to Ghia's
+tabulated coordinates.
+
+At Re = 100 the circles sit on the line. At Re = 1000 they do not — and the rest
+of this section is about why that was predictable.
 
 | Re | u-centreline RMSE | `ψ_min` present | `ψ_min` Ghia | error | vortex position error |
 |---|---|---|---|---|---|

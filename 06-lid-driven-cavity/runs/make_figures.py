@@ -31,8 +31,20 @@ for Re, r in sorted(runs.items()):
 ax[0].set_xlabel("u"); ax[0].set_ylabel("y"); ax[0].set_title("u on x = 0.5")
 ax[1].set_xlabel("x"); ax[1].set_ylabel("v"); ax[1].set_title("v on y = 0.5")
 for a in ax:
-    a.grid(alpha=0.3); a.legend(fontsize=8)
-fig.suptitle("Centreline velocities: lines = present solver, circles = Ghia et al. (1982)")
+    a.grid(alpha=0.3)
+ax[1].legend(fontsize=8)
+
+# A legend for the SYMBOLS as well as the colours. Stating "circles = Ghia"
+# only in the figure title is not enough -- the first person to read this plot
+# asked where the benchmark data was.
+from matplotlib.lines import Line2D
+ax[0].legend(handles=[
+    Line2D([0], [0], color="#444444", lw=1.8, label="present solver"),
+    Line2D([0], [0], marker="o", color="none", mec="#444444", mew=1.4,
+           ms=6, ls="none", label="Ghia et al. (1982) benchmark"),
+], fontsize=8, loc="lower right")
+
+fig.suptitle("Centreline velocities: present solver vs. the Ghia et al. (1982) benchmark")
 fig.tight_layout(); fig.savefig("figures/centreline_validation.png", dpi=150)
 print("figures/centreline_validation.png")
 
