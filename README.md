@@ -1,161 +1,141 @@
 # CFD from Scratch
 
-Finite-difference solvers for computational fluid dynamics, built from first
-principles — from the 1D linear advection equation up to a lid-driven cavity
-solver in vorticity–streamfunction form. No CFD libraries: every scheme, every
-solver and every verification test is written from the discretisation up.
+Finite-difference solvers for computational fluid dynamics, written from the
+discretisation up — from the 1D linear advection equation to a lid-driven cavity
+in vorticity–streamfunction form. **No CFD libraries.** Every scheme, every
+solver and every verification test here was derived by hand first, then
+implemented, then checked against something that could prove it wrong.
+
+![Lid-driven cavity at three Reynolds numbers](figures/cavity_hero.png)
 
 Each module keeps three things together that are usually kept apart:
 
-- **theory/** — the derivation, done by hand, before any code exists
-- **src/** and **tests/** — the implementation, and evidence that it is
-  *correct* rather than merely runnable
-- **experiments/** — numerical experiments in the form
-  *question → prediction from theory → result → verdict*
-
-The derivations are written to be self-contained. A reader needs derivatives
-and power series; every algebraic step is shown.
+| | |
+|---|---|
+| **`theory/`** | the derivation, done by hand, before any code exists |
+| **`src/` + `tests/`** | the implementation, and evidence it is *correct* rather than merely runnable |
+| **`experiments/`** | the original hand-written scripts, kept unchanged — including the ones with bugs |
 
 ---
 
-## Progress
+## The six modules
 
-| # | Module | Status |
+| # | Module | What it establishes |
 |---|---|---|
-| 01 | [Linear advection](01-linear-advection/) — six schemes, Taylor-series stencils, verification | **complete** |
-| 02 | [Spectral analysis](02-spectral-analysis/) — numerical wavenumber, dispersion, group velocity | **complete** |
-| 03 | [2D advection](03-advection-2d/) — the 2D CFL condition, Lax–Wendroff cross term | **complete** |
-| 04 | [Burgers](04-burgers/) — 1D and 2D nonlinear, conditional upwinding, shock formation | **complete** |
-| 05 | [Poisson](05-poisson/) — Jacobi, Gauss–Seidel, SOR, manufactured solutions | **complete** |
-| 06 | [Lid-driven cavity](06-lid-driven-cavity/) — vorticity–streamfunction, Ghia validation | **validated at Re = 100** |
+| 01 | [**Linear advection**](01-linear-advection/) | Six schemes; every stencil derived from Taylor series; measured orders against formal |
+| 02 | [**Spectral analysis**](02-spectral-analysis/) | Numerical wavenumber, dispersion, dissipation, group velocity |
+| 03 | [**2D advection**](03-advection-2d/) | The 2D CFL condition is a *sum*; Lax–Wendroff's cross-derivative term |
+| 04 | [**Burgers**](04-burgers/) | Nonlinearity, conditional upwinding, shock formation |
+| 05 | [**Poisson**](05-poisson/) | Jacobi, Gauss–Seidel, SOR; method of manufactured solutions |
+| 06 | [**Lid-driven cavity**](06-lid-driven-cavity/) | Incompressible Navier–Stokes, validated against Ghia et al. (1982) |
 
-Modules are numbered by topic, not by the order they were built. 02 came last
-of the completed modules: the spectral analysis is the most interesting part of
-this repository, but 03–05 are what the lid-driven cavity depends on, so they
-came first.
+Numbered by topic, not by build order. The derivations assume only calculus and
+power series; every algebraic step is shown.
 
 ---
 
-## Module 01 — verification summary
+## Validation
 
-Gaussian advected once round a periodic domain at `C = 0.5`. Order `p` is
-`log₂(e_coarse / e_fine)` between the two finest grids.
+![Centreline velocities against Ghia, Ghia & Shin (1982)](figures/validation.png)
 
-| Scheme | N=200 | N=1600 | measured `p` | formal |
-|---|---|---|---|---|
-| FTBS (upwind) | 3.952e-02 | 5.588e-03 | **0.97** | 1 |
-| Lax–Friedrichs | 9.448e-02 | 1.615e-02 | **0.92** | 1 |
-| Lax–Wendroff | 1.800e-03 | 2.815e-05 | **2.00** | 2 |
-| BD-2 (Beam–Warming) | 1.800e-03 | 2.815e-05 | **2.00** | 2 |
-| FTCS, FTFS | — | — | — | unconditionally unstable |
+Centreline velocities on a 101×101 grid, interpolated to Ghia's tabulated
+coordinates. Blue sits on the benchmark. Red does not — and the rest of this
+section is about why that was predictable.
 
-Also verified: upwind is **exact at `C = 1`** — max error `0.000e+00` on a
-*square wave*, where any dissipation or dispersion would show immediately; mass
-conserved to machine precision over five domain transits; and FTCS and FTFS do
-diverge, reaching `10¹²` and `10¹¹²`, which confirms the test rig can actually
-detect instability.
-
-Finite-difference stencils (FD-1, BD-1, CD-2, BD-2, CD-4) are derived from
-Taylor series and checked numerically — measured orders 1.01, 0.99, 2.00, 2.02,
-4.00, with leading truncation coefficients matching theory to four significant
-figures.
-
-**One result worth singling out.** Lax–Wendroff and Beam–Warming produce
-identical errors at exactly `C = 1/2`. Their leading dispersive coefficients
-scale as `(1 − C²)` and `(1 − C)(2 − C)`, so the ratio is `(1+C)/(2−C)`, which
-equals 1 only there. Measured `0.7648 / 1.0000 / 1.4999` against predicted
-`0.7647 / 1.0000 / 1.5000`.
-
----
-
-## Module 03 — verification summary
-
-Diagonal advection on an exactly periodic initial condition.
-
-| Scheme | N=40 | N=320 | measured `p` | formal |
-|---|---|---|---|---|
-| Upwind-2D | 1.581e-01 | 2.372e-02 | **0.96** | 1 |
-| Lax–Wendroff-2D | 6.857e-03 | 1.071e-04 | **2.00** | 2 |
-
-Two results with no 1D analogue, both invisible to a test with flow aligned to
-an axis:
-
-**The CFL limit is the sum.** Not `Cx ≤ 1` and `Cy ≤ 1` separately, but
-`Cx + Cy ≤ 1` — so at `Cx = Cy` the limit per direction is 0.5, not 1. Measured
-on a checkerboard (the worst Von Neumann mode): neutrally stable at exactly
-`Cx + Cy = 1.00`, diverging at 1.02.
-
-**Lax–Wendroff needs a cross-derivative term.** In 2D `u_tt` grows a
-`2 cx cy u_xy` term, which vanishes when `cy = 0`. A scheme missing it measures
-a flawless 2.00 along an axis and 1.00 on a diagonal. The broken version is kept
-in the repository as a control.
-
----
-
-## Module 02 — resolving power is not order of accuracy
-
-Feed `exp(ikx)` into a stencil and compare what comes back against the exact
-derivative. The **numerical wavenumber** `k_num` is complex: its real part
-carries dispersion, its imaginary part dissipation. All eight closed forms
-verified against the stencils to `1e-14` or better.
-
-**Points per wavelength for 1% phase error:**
-
-| stencil | order | PPW |
-|---|---|---|
-| BD-1 | 1 | **25.6** |
-| CD-2 | 2 | **25.6** |
-| CD-4 | 4 | **8.3** |
-
-BD-1 and CD-2 need *identical* resolution despite differing in formal order —
-they share the real part `sin(K)/K`, and phase error lives entirely there. A
-convergence study cannot distinguish them on this axis at all.
-
-**Group velocity changes sign at 4 points per wavelength.** For CD-2,
-`V_g/c = cos(K)`, so under-resolved modes carry energy *upstream* at up to full
-speed — the spurious q-waves. Invisible to convergence studies (they vanish as
-`Δx → 0`) and to stability analysis (`|G| ≤ 1` throughout).
-
----
-
-## Module 06 — what first-order upwind costs
-
-The cavity solver advects vorticity with first-order upwind, which module 01
-showed adds a real diffusion `ν_num = |u|Δx(1−C)/2`. In the vorticity transport
-equation that sits directly alongside the physical `ν`:
-
-| case | grid | `ν` | `ν_num` | ratio | `Re_eff` |
+| Re | u-centreline RMSE | `ψ_min` present | `ψ_min` Ghia | error | vortex position error |
 |---|---|---|---|---|---|
-| Re=100 | 101² | 0.0100 | 0.00450 | 0.45 | 69 |
-| Re=400 | 101² | 0.0025 | 0.00450 | **1.80** | 143 |
-| Re=1000 | 101² | 0.0010 | 0.00450 | **4.50** | 182 |
+| 100 | **0.00529** (1.95 %) | −0.103439 | −0.103423 | **0.02 %** | 0.0091 — under one cell |
+| 400 | 0.03968 (21.96 %) | −0.106344 | −0.113909 | 6.64 % | 0.0428 |
+| 1000 | 0.09834 (38.68 %) | −0.098759 | −0.117929 | 16.26 % | 0.0510 |
 
-(near the lid; interior speeds give `Re_eff` of 91, 287, 505)
+At Re = 100 the primary vortex matches the benchmark to **0.02 %** in strength
+and to less than one grid spacing in position.
 
-Since `ν_num` depends on `Δx` and not on `ν`, raising the target Reynolds number
-at fixed grid eventually lets it dominate. That predicts — before any comparison
-is run — good agreement at Re = 100 and sharp degradation between 400 and 1000.
+### Why the higher-Re cases drift
 
-**Measured, against Ghia's Tables I, II and V:**
+First-order upwind does not solve the equation you wrote. Its modified equation
+adds a real diffusion,
 
-| Re | u RMSE | u rel% | `ψ_min` present | `ψ_min` Ghia | error | vortex location error |
-|---|---|---|---|---|---|---|
-| 100 | **0.00529** | 1.95% | −0.103439 | −0.103423 | **0.02%** | 0.0091 (< 1 cell) |
-| 400 | 0.03968 | 21.96% | −0.106344 | −0.113909 | 6.64% | 0.0428 |
-| 1000 | 0.09834 | 38.68% | −0.098759 | −0.117929 | 16.26% | 0.0510 |
+```
+ν_num = |u| Δx (1 − C) / 2
+```
 
-At Re = 100 the primary vortex strength matches to **0.02%** and its location to
-less than one grid spacing. The degradation with Re tracks `ν_num/ν`, which goes
-0.45 → 1.50 → 3.00 across the three cases, crossing 1 exactly where the error
-jumps.
+and in the vorticity transport equation that term sits directly alongside the
+physical `ν`. Since `ν_num` depends on `Δx` and not on `ν`, raising the target
+Reynolds number at fixed grid eventually lets it dominate:
 
-The Re = 1000 error is also *structured*: small near the lid, an order of
-magnitude larger near the bottom wall, and always in the direction of too weak.
-That is the bottom-left secondary vortex, which excess diffusion destroys first
-while the primary vortex survives.
+| Re | `ν` | `ν_num` | ratio | u RMSE |
+|---|---|---|---|---|
+| 100 | 0.0100 | 0.00450 | 0.45 | 0.00529 |
+| 400 | 0.0025 | 0.00375 | **1.50** | 0.03968 |
+| 1000 | 0.0010 | 0.00300 | **3.00** | 0.09834 |
 
-Corollary: `ν_num → |u|Δx/2` as `Δt → 0`, so **shrinking the timestep makes
-numerical diffusion worse**. Only refining `Δx` reduces it.
+The ratio crosses 1 between Re = 400 and 1000, and that is exactly where the
+error jumps. The prediction was made from the modified equation *before* the
+comparison was run.
+
+The Re = 1000 error is also **structured**: small near the lid, an order of
+magnitude larger near the bottom wall, and always in the direction of *too
+weak*. That is the bottom-left secondary vortex, which excess diffusion destroys
+first while the strong primary vortex survives.
+
+> **Stated honestly:** the Re = 1000 run reached `dω = 5.8e-06` against `1e-7`
+> for the other two cases. Some of that 38 % may be incomplete convergence
+> rather than numerical viscosity. The two have not yet been separated.
+
+---
+
+## What a convergence study cannot see
+
+![Numerical wavenumber, dissipation and group velocity](figures/spectral.png)
+
+Order of accuracy describes the limit `Δx → 0`. It says nothing about the grid
+you can actually afford. Feeding `exp(ikx)` through each stencil answers the
+second question — and gives two results a convergence study is blind to:
+
+- **BD-1 and CD-2 need identical resolution** — 25.6 points per wavelength for
+  1 % phase error — despite being first and second order. They share the real
+  part `sin(K)/K`, and phase error lives entirely there. CD-4 needs 8.3.
+- **Below four points per wavelength, group velocity changes sign.** For CD-2,
+  `V_g/c = cos(K)`: under-resolved modes carry energy *upstream*, at full speed
+  at `K = π`. Invisible to a convergence study (it vanishes as `Δx → 0`) and to
+  a stability analysis (`|G| ≤ 1` throughout).
+
+All eight closed forms were verified against the stencils themselves to `1e-14`.
+
+---
+
+## Start here
+
+If you are learning this and want a route through:
+
+1. **Understand why `u(x,t) = f(x − ct)`** before writing any code —
+   [`01-linear-advection/theory/01-analytical-solution.md`](01-linear-advection/theory/01-analytical-solution.md).
+   The method of characteristics also explains *why* upwinding works, which
+   turns a rule you memorise into something obvious.
+2. **Derive the stencils yourself** from Taylor series —
+   [`02-finite-difference-stencils.md`](01-linear-advection/theory/02-finite-difference-stencils.md).
+   Everything else is built on those six formulas.
+3. **Write the simplest solver you can, and get it wrong.**
+   [`01-linear-advection/BUGS.md`](01-linear-advection/BUGS.md) documents the four
+   mistakes in my first attempt and what each one cost.
+4. **Verify before you trust.** Measure the order of accuracy. A code that runs
+   is not a code that is correct.
+5. Then 2D, then nonlinear, then elliptic solvers, then Navier–Stokes.
+
+Four things that cost me time, and are written up where they happened:
+
+- *The bugs you can find are limited by the diagnostic you choose.* A frozen
+  inflow boundary destroyed 10 % of a domain — 100 % error at `x = 0.5` — and was
+  invisible because only `max(u)` was being printed.
+- *A convergence order that gets **worse** under refinement is almost always the
+  test, not the scheme.* Mine fell 1.97 → 1.30 because the Gaussian was not
+  periodic on the domain.
+- *Grid-independence is how you tell a real result from a numerical artefact.*
+- *A test that cannot fail is not a test.* My first frozen-boundary check used
+  `sin(πx)`, where the boundary value is zero either way.
+
+Further reading, including every paper used, is in [`RESOURCES.md`](RESOURCES.md).
 
 ---
 
@@ -163,16 +143,30 @@ numerical diffusion worse**. Only refining `Δx` reduces it.
 
 ```bash
 pip install -r requirements.txt
+
 cd 01-linear-advection
-python3 advection_1d.py          # standalone upwind solver, explicit loops
-python3 demo.py                  # all six schemes compared
-python3 tests/test_convergence.py
+python3 advection_1d.py              # standalone upwind solver, explicit loops
+python3 tests/test_convergence.py    # measured orders, exactness at C=1, conservation
+
+cd ../06-lid-driven-cavity
+python3 runs/compare_all.py          # Ghia error tables from the saved runs
+python3 runs/make_figures.py         # regenerate this module's figures
 ```
+
+Every figure in this repository regenerates from committed data —
+`figures/make_hero.py` and `figures/make_spectral.py` build the three above.
 
 ---
 
 ## Author
 
-**Akula Uday Kiran** — B.Tech Aerospace Engineering, RV College of
-Engineering, Bengaluru. Interested in numerical methods for CFD: high-accuracy
-schemes, compact discretisations, and spectral analysis of numerical error.
+**Akula Uday Kiran** — B.Tech Aerospace Engineering, RV College of Engineering,
+Bengaluru. Written during a research internship in the Computational and
+Theoretical Fluid Dynamics division, CSIR–National Aerospace Laboratories, under
+Dr. V. K. Suman.
+
+Interests: numerical methods for CFD — high-accuracy schemes, compact
+discretisations, and spectral analysis of numerical error.
+
+Released under the [MIT License](LICENSE), so that anyone who wants to learn
+this can take it and use it.
