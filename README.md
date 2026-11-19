@@ -29,7 +29,37 @@ If you are here to learn rather than to assess, start at
 
 ---
 
-## How it is organised
+## The six modules
+
+<table>
+<tr>
+<td width="33%" align="center"><a href="01-linear-advection/"><img src="figures/thumbs/01.png" width="100%"></a></td>
+<td width="33%" align="center"><a href="02-spectral-analysis/"><img src="figures/thumbs/02.png" width="100%"></a></td>
+<td width="33%" align="center"><a href="03-advection-2d/"><img src="figures/thumbs/03.png" width="100%"></a></td>
+</tr>
+<tr valign="top">
+<td><b><a href="01-linear-advection/">01 — Linear advection</a></b><br><sub>Six schemes. Every stencil derived from Taylor series, measured orders against formal.</sub></td>
+<td><b><a href="02-spectral-analysis/">02 — Spectral analysis</a></b><br><sub>Numerical wavenumber, dispersion, dissipation, group velocity.</sub></td>
+<td><b><a href="03-advection-2d/">03 — 2D advection</a></b><br><sub>The 2D CFL condition is a sum. Lax–Wendroff's cross-derivative term.</sub></td>
+</tr>
+<tr>
+<td align="center"><a href="04-burgers/"><img src="figures/thumbs/04.png" width="100%"></a></td>
+<td align="center"><a href="05-poisson/"><img src="figures/thumbs/05.png" width="100%"></a></td>
+<td align="center"><a href="06-lid-driven-cavity/"><img src="figures/thumbs/06.png" width="100%"></a></td>
+</tr>
+<tr valign="top">
+<td><b><a href="04-burgers/">04 — Burgers</a></b><br><sub>Nonlinearity, conditional upwinding, shock formation.</sub></td>
+<td><b><a href="05-poisson/">05 — Poisson</a></b><br><sub>Jacobi, Gauss–Seidel, SOR. Method of manufactured solutions.</sub></td>
+<td><b><a href="06-lid-driven-cavity/">06 — Lid-driven cavity</a></b><br><sub>Incompressible Navier–Stokes, validated against Ghia et al. (1982).</sub></td>
+</tr>
+</table>
+
+Numbered by topic, not by build order. The derivations assume only calculus and
+power series, and every algebraic step is shown.
+
+---
+
+## How it was built
 
 ![The project from day one to the Ghia validation, stage by stage](figures/project-map.png)
 
@@ -37,18 +67,6 @@ Two months, seven stages, in the order they happened. The dashed arrow is the
 argument the whole project turns on: the numerical diffusion measured in Stage 1
 is what limits the cavity in Stage 7 — measured there, before it was needed
 here.
-
-| # | Module | What it establishes |
-|---|---|---|
-| 01 | [Linear advection](01-linear-advection/) | Six schemes; every stencil derived from Taylor series; measured orders against formal |
-| 02 | [Spectral analysis](02-spectral-analysis/) | Numerical wavenumber, dispersion, dissipation, group velocity |
-| 03 | [2D advection](03-advection-2d/) | The 2D CFL condition is a *sum*; Lax–Wendroff's cross-derivative term |
-| 04 | [Burgers](04-burgers/) | Nonlinearity, conditional upwinding, shock formation |
-| 05 | [Poisson](05-poisson/) | Jacobi, Gauss–Seidel, SOR; method of manufactured solutions |
-| 06 | [Lid-driven cavity](06-lid-driven-cavity/) | Incompressible Navier–Stokes, validated against Ghia et al. (1982) |
-
-Numbered by topic, not by build order. The derivations assume only calculus and
-power series, and every algebraic step is shown.
 
 Each module keeps three things together that are usually kept apart:
 
@@ -122,11 +140,21 @@ fall at first order in the grid spacing — observed order 0.85 at Re = 400 and
 
 The disagreement is the discretisation, predicted and then accounted for.
 
-> **Where this stops working.** At Re ≥ 3200 no grid here reproduces the
-> benchmark flow, and the same extrapolation still misses by 24 % and 53 % at
-> Re = 5000 and 10000. Numerical viscosity does not explain that regime. The
-> report says so, and lists the tests that would settle it, rather than
-> claiming an answer it does not have.
+### Where this stops working
+
+![Streamlines at all seven Reynolds numbers, on the finest grid available for each](06-lid-driven-cavity/figures/report/streamlines-all-re.png)
+
+Black is fluid turning with the lid, red is fluid turning against it, and `+`
+marks the centre of the primary vortex. Up to Re = 1000 the red is confined to
+the corner eddies, where the benchmark puts it. From Re = 3200 it fills much of
+the cavity, and the vortex drifts toward the top-right corner instead of toward
+the centre.
+
+At Re ≥ 3200 no grid here reproduces the benchmark flow, and the same
+first-order extrapolation still misses by 24 % and 53 % at Re = 5000 and 10000.
+Numerical viscosity does not explain that regime. The [report](report/) says so,
+and lists the tests that would settle it, rather than claiming an answer it does
+not have.
 
 ---
 
@@ -214,8 +242,8 @@ python3 runs/make_figures.py         # regenerate this module's figures
 ```
 
 Every figure a module generates for itself rebuilds from committed data. Each
-module has its own `make_figures.py`; the two scripts in `figures/` build the
-ones on this page.
+module has its own `make_figures.py`; the three scripts in `figures/` build the
+hero, the spectral panel and the six module thumbnails on this page.
 
 The figures carried over from the report are indexed in
 [`report/README.md`](report/README.md). Seventeen of those twenty-eight rebuild
