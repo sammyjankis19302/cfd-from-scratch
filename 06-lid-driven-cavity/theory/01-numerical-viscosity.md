@@ -34,23 +34,36 @@ $\nu_{\text{num}}$ depends on $\Delta x$, **not on $\nu$**. So as you target a
 higher Reynolds number at fixed grid, $\nu$ falls and $\nu_{\text{num}}$ stays
 where it is — until it dominates.
 
-Near the lid, where $|u| \approx 1$, with $\Delta t = 10^{-3}$:
+### The steady-state form
+
+The $(1 - C)$ factor is the time step's share of $\nu_{\text{num}}$, and a
+**converged** solution has none: once $\omega^{n+1} = \omega^n$ the scheme is
+solving the steady equation and $\Delta t$ has dropped out of it. Putting
+$|u| \to U$ and $\nu = UL/Re$ into $\nu_{\text{num}} = |u|\Delta x/2$ gives
+
+$$\frac{\nu_{\text{num}}}{\nu} = \frac{Re\,\Delta x}{2}
+\qquad\text{(steady state, } \Delta x \text{ in units of } L)$$
+
+Every run compared below is a converged steady run, so this is the form used
+throughout. It is also the upper bound on the marching value, which is
+$(1-C)$ times it.
+
+Near the lid, where $|u| \approx 1$:
 
 | case | grid | $\Delta x$ | $\nu$ | $\nu_{\text{num}}$ | ratio | $Re_{\text{eff}}$ | $Re_{\text{cell}}$ |
 |---|---|---|---|---|---|---|---|
-| Re=100 | $51^2$ | 0.0200 | 0.0100 | 0.00950 | 0.95 | 51 | 2.00 |
-| Re=100 | $101^2$ | 0.0100 | 0.0100 | 0.00450 | 0.45 | 69 | 1.00 |
-| Re=100 | $201^2$ | 0.0050 | 0.0100 | 0.00200 | 0.20 | 83 | 0.50 |
-| Re=400 | $101^2$ | 0.0100 | 0.0025 | 0.00450 | **1.80** | 143 | 4.00 |
-| Re=1000 | $101^2$ | 0.0100 | 0.0010 | 0.00450 | **4.50** | 182 | 10.00 |
-| Re=1000 | $201^2$ | 0.0050 | 0.0010 | 0.00200 | **2.00** | 333 | 5.00 |
+| Re=100 | $51^2$ | 0.0200 | 0.0100 | 0.0100 | 1.00 | 50 | 2.00 |
+| Re=100 | $101^2$ | 0.0100 | 0.0100 | 0.0050 | 0.50 | 67 | 1.00 |
+| Re=100 | $201^2$ | 0.0050 | 0.0100 | 0.0025 | 0.25 | 80 | 0.50 |
+| Re=400 | $101^2$ | 0.0100 | 0.0025 | 0.0050 | **2.00** | 133 | 4.00 |
+| Re=1000 | $101^2$ | 0.0100 | 0.0010 | 0.0050 | **5.00** | 167 | 10.00 |
+| Re=1000 | $201^2$ | 0.0050 | 0.0010 | 0.0025 | **2.50** | 286 | 5.00 |
 
-With a representative interior speed $|u| \approx 0.2$ the picture is milder —
-$Re_{\text{eff}}$ of 91, 287 and 505 for the three $101^2$ cases — so the truth
-sits between the two tables, worst near the lid and mildest in the core.
+With a representative interior speed $|u| \approx 0.2$ the picture is milder, so
+the truth sits between, worst near the lid and mildest in the core.
 
-**At Re = 1000 on a $101^2$ grid the numerical viscosity is roughly 4.5 times
-the physical viscosity near the lid.** The run is not solving Re = 1000.
+**At Re = 1000 on a $101^2$ grid the numerical viscosity is five times the
+physical viscosity near the lid.** The run is not solving Re = 1000.
 
 ---
 
@@ -58,8 +71,8 @@ the physical viscosity near the lid.** The run is not solving Re = 1000.
 
 Three falsifiable statements, all made before looking at any Ghia comparison:
 
-1. **Re = 100 should agree well.** $\nu_{\text{num}}/\nu \le 0.45$, and less in
-   the interior.
+1. **Re = 100 should agree well.** $\nu_{\text{num}}/\nu \le 0.50$ on $101^2$,
+   and less in the interior.
 2. **Agreement should degrade monotonically with Re**, and most sharply across
    Re = 100 → 400, because that is the interval in which the ratio crosses 1.
 3. **Refining $101^2 \to 201^2$ at Re = 1000 should move the solution

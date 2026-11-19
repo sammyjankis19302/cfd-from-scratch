@@ -37,6 +37,33 @@ the classic 2D bug, which survives every symmetric test.
 
 ---
 
+## The run that started this module
+
+![2D upwind advection: numerical, exact, and difference on a shared colour scale](figures/report/advection-2d.png)
+
+*Figure 3.4 of the [report](../report/) — `2D_advection_linear.py`, 31 August,
+500 steps of upwinding in both directions at `C_x + C_y = 0.08`.*
+
+I had plotted the numerical and the exact solution in two separate windows, each
+with its own colour scale, and they looked alike. On **one shared scale** they
+do not. The wave has kept about **15 %** of its amplitude, and along the inflow
+boundaries, which are never updated, it is zero.
+
+Both faults were already familiar from one dimension — numerical damping and a
+frozen boundary — and both were hidden by a colour bar that silently rescaled
+itself to whatever it was given. **An automatic scale makes any field look like
+a field.** Every comparison in this repository is now drawn on a shared scale or
+against a plotted exact solution.
+
+One convention that has to be fixed before anything else in 2D: arrays are
+indexed `u[j, i]` with `j` the `y` index, because `np.meshgrid(x, y)` returns
+arrays whose first index runs along `y`. A derivative in `x` steps `i`; one in
+`y` steps `j`. Swapping them produces code that runs, plots something plausible,
+and is wrong — which is what `tests/` checks for above, and why the convention
+is identical in the cavity solver of [module 06](../06-lid-driven-cavity/).
+
+---
+
 ## The two results that matter
 
 ### The CFL condition is the sum, not each direction

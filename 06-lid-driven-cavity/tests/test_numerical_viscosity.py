@@ -19,7 +19,7 @@ import numpy as np
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.numerical_viscosity import (cell_reynolds, effective_reynolds,
-                                     numerical_viscosity, report)
+                                     numerical_viscosity, report, steady_ratio)
 
 HERE = os.path.dirname(__file__)
 REF = os.path.join(HERE, "..", "reference")
@@ -83,6 +83,39 @@ def test_effective_reynolds_table():
     print("\n  numerical viscosity dominates at high Re, eases on finer grids: PASS\n")
 
 
+def test_steady_ratio():
+    """Re*dx/2 is the dt -> 0 limit of the marching ratio, and Table 12.1.
+
+    Two things to prove. First that the steady form really is the limit of the
+    marching one, so the two are not independent claims. Second that it
+    reproduces the table in the report, which was computed separately.
+    """
+    dx, nu = 0.01, 0.001                      # 101^2, Re = 1000
+    limit = numerical_viscosity(1.0, dx, 1e-12) / nu
+    assert abs(steady_ratio(1000, dx) - limit) < 1e-6, \
+        "the steady ratio must be the dt -> 0 limit of the marching one"
+    print(f"  dt -> 0 limit {limit:.4f}  vs  Re*dx/2 = {steady_ratio(1000, dx):.4f}")
+
+    # Table 12.1 of the report, every entry that is printed there.
+    expected = {(100, 51): 1.0, (100, 101): 0.50, (100, 129): 0.39, (100, 257): 0.20,
+                (400, 51): 4.0, (400, 101): 2.0, (400, 129): 1.6,
+                (1000, 51): 10.0, (1000, 101): 5.0, (1000, 129): 3.9,
+                (3200, 51): 32.0, (3200, 101): 16.0, (3200, 129): 12.5,
+                (5000, 51): 50.0, (5000, 101): 25.0, (5000, 257): 9.8,
+                (7500, 51): 75.0, (7500, 101): 37.5,
+                (10000, 51): 100.0, (10000, 101): 50.0, (10000, 257): 19.5}
+    for (Re, N), want in sorted(expected.items()):
+        got = steady_ratio(Re, 1.0 / (N - 1))
+        assert abs(got - want) <= 0.05 * max(want, 1.0), \
+            f"Re={Re} on {N}^2: {got:.3f}, report says {want}"
+    print(f"  all {len(expected)} entries of report Table 12.1 reproduced")
+
+    assert steady_ratio(100, 1.0 / 100) < 1.0 < steady_ratio(400, 1.0 / 100), \
+        "the ratio must cross 1 between Re = 100 and Re = 400 on 101^2"
+    print("  ratio crosses 1 between Re = 100 and Re = 400 on 101^2")
+    print("  steady-state viscosity ratio: PASS\n")
+
+
 def _load(path):
     rows = [r for r in open(path) if not r.startswith("#")]
     return list(csv.DictReader(io.StringIO("".join(rows))))
@@ -128,6 +161,7 @@ if __name__ == "__main__":
         ("nu_num matches the modified equation", test_matches_modified_equation),
         ("smaller dt is worse", test_smaller_dt_is_worse),
         ("effective Reynolds number table", test_effective_reynolds_table),
+        ("steady-state viscosity ratio", test_steady_ratio),
         ("Ghia reference data", test_reference_data_is_sane),
     ]
     failed = 0

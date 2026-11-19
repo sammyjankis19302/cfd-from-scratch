@@ -55,6 +55,62 @@ Four further checks, all passing:
 
 ---
 
+## The experiments this module came out of
+
+Three runs from August, before any of the above existed. Each one failed in a
+way I could not explain at the time, and each failure is a section of
+[module 02](../02-spectral-analysis/) or of the theory below. Figures from the
+[report](../report/) (§3.1–3.4); the first three regenerate with
+`python3 ../report/make_all_figures.py`.
+
+**12 August — the same scheme, the same grid, three different answers.**
+
+![Three sine waves at 100, 20 and 4 points per wavelength](figures/report/points-per-wavelength.png)
+
+`sin(fπx)` for `f = 2, 10, 50` on one grid — 1001 points, `L = 10`, `|C| = 0.1`,
+advected for one time unit by FTFS. The only difference between the panels is
+how many grid points cover one wavelength: **100, 20 and 4**. The surviving
+amplitudes are **0.837, 0.012 and 0.000**.
+
+The same scheme is excellent for one wave and useless for another. Nothing in
+the order of accuracy says which — that is a statement about `Δx → 0`, and this
+is one fixed grid. Predicting all three numbers in advance is what
+[module 02](../02-spectral-analysis/) does.
+
+**20 August — a run that was wrong twice over, and looked fine.**
+
+![FTBS at C = 1.005, with the frozen inflow region shaded](figures/report/ftbs-above-cfl.png)
+
+FTBS at `C = 1.005`, 500 steps. Two independent bugs in one plot:
+
+- The inflow value `u₀` was never updated — the line that did it was commented
+  out. Everything the inflow has reached, about **half the domain**, is zero.
+  `max(u)` cannot see a region that is simply *missing*; it read 1.0011, within
+  0.12 % of exact.
+- `C = 1.005` is past the stability limit, so the run was also unstable. The
+  enlargement shows the fastest-growing mode as a sawtooth of amplitude ≈ 0.3,
+  seeded by the kink where the dead region meets the sine. It had not yet grown
+  enough to disturb `max(u)` either.
+
+A scheme past its stability limit can look stable for a long time, and the
+amplitude check I was using could not detect either fault. The frozen boundary
+is `BUGS.md` #1; why the unstable mode stayed so small is module 02.
+
+**21 August — the most accurate stencil gives the worst scheme.**
+
+![FTCS growing to 1e49 over 500 steps](figures/report/ftcs-blowup.png)
+
+The central difference is second-order where FD and BD are first-order, so FTCS
+should have been the best of the three. It grew by about the same factor every
+step and reached `2.95 × 10⁴⁹` after 500. The growth starts at the two ends,
+where the boundary values are never updated and the solution has a jump.
+
+**Spatial accuracy and stability are independent properties.** This result is
+what sent me to the theory, and `|G| > 1` for every mode of FTCS is derived in
+[module 02](../02-spectral-analysis/).
+
+---
+
 ## The one experiment so far
 
 Lax–Wendroff and Beam–Warming produced *identical* errors to four digits at
@@ -87,6 +143,13 @@ nothing more. Every algebraic step is shown.
   `c_p = c` for every wavenumber — the baseline against which all numerical
   dissipation and dispersion is measured.
 
+  ![The characteristic lines x − ct = const carrying the initial profile](figures/report/characteristics.png)
+
+  *The whole equation in one picture: `u` is constant along every line
+  `x − ct = const`, so the initial profile is carried rigidly to the right at
+  speed `c` and never changes shape. The solution is `f(x − ct)` because it
+  cannot be anything else.*
+
 - **[02 — Where finite-difference stencils come from](theory/02-finite-difference-stencils.md)**
   FD-1, BD-1, CD-2, BD-2, CD-4 and the second-derivative CD-2, all derived from
   Taylor series by one repeated method. Includes the general recipe for
@@ -97,6 +160,14 @@ nothing more. Every algebraic step is shown.
   Stencils verified numerically — measured orders 1.01, 0.99, 2.00, 2.02, 4.00,
   with leading truncation coefficients matching theory to four significant
   figures.
+
+  ![FD, BD and CD-2 stencils against the flow direction](figures/report/stencils.png)
+
+  *Why "upwind" is a direction and not a formula. For `c > 0` information
+  arrives from the left, so BD reads the point the information came from and FD
+  reads one the flow has not reached yet. CD-2 is symmetric and so commits to
+  neither — which is why it is a better approximation to `u_x` and still an
+  unusable scheme with explicit Euler.*
 
 ---
 

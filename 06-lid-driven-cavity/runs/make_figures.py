@@ -4,13 +4,20 @@ Kept as a script, not a notebook, so every figure in the repository can be
 regenerated from the saved .npz runs by one command.
 """
 import glob, os, sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_HERE = os.path.dirname(os.path.abspath(__file__))        # .../runs
+_MOD = os.path.dirname(_HERE)                             # the module root
+sys.path.insert(0, _MOD)
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from src.ghia_compare import centreline_u, centreline_v, load_ghia
 
+# Paths are anchored to this file, not to the working directory, so the script
+# runs the same from the module root and from inside runs/. Globbing relative
+# to the CWD instead finds no runs from the wrong folder, and the failure comes
+# out as an unhelpful error about the number of subplot columns.
+os.chdir(_MOD)
 os.makedirs("figures", exist_ok=True)
 runs = {}
 for f in sorted(glob.glob("runs/Re*_N*.npz")):

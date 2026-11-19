@@ -18,6 +18,18 @@ Each module keeps three things together that are usually kept apart:
 
 ---
 
+## How it was built
+
+![The project from day one to the Ghia validation, stage by stage](figures/project-map.png)
+
+Two months, seven stages, in the order they happened — and the reason the last
+one works is the first one. The dashed arrow is the argument the whole project
+turns on: **the numerical diffusion measured in Stage 1 is what limits the
+cavity in Stage 7**, and it is measured there before it is needed here.
+
+The 62-page write-up is in **[`report/`](report/)**, together with the two
+scripts that generate every figure and every number in it.
+
 ## The six modules
 
 | # | Module | What it establishes |
@@ -67,11 +79,15 @@ and in the vorticity transport equation that term sits directly alongside the
 physical `ν`. Since `ν_num` depends on `Δx` and not on `ν`, raising the target
 Reynolds number at fixed grid eventually lets it dominate:
 
-| Re | `ν` | `ν_num` | ratio | u RMSE |
+For a converged steady run the `(1 − C)` factor is exactly one — a steady
+solution no longer depends on the timestep — which leaves `ν_num/ν = Re Δx/2`.
+On the 101×101 grid used here:
+
+| Re | `ν` | `ν_num` | `ν_num/ν` | u RMSE |
 |---|---|---|---|---|
-| 100 | 0.0100 | 0.00450 | 0.45 | 0.00529 |
-| 400 | 0.0025 | 0.00375 | **1.50** | 0.03968 |
-| 1000 | 0.0010 | 0.00300 | **3.00** | 0.09834 |
+| 100 | 0.0100 | 0.0050 | 0.50 | 0.00529 |
+| 400 | 0.0025 | 0.0050 | **2.00** | 0.03968 |
+| 1000 | 0.0010 | 0.0050 | **5.00** | 0.09834 |
 
 The ratio crosses 1 between Re = 100 and Re = 400 — and that is exactly where
 the error jumps hardest: **7.5×** from Re = 100 to 400, against 2.5× from 400 to
@@ -83,9 +99,26 @@ magnitude larger near the bottom wall, and always in the direction of *too
 weak*. That is the bottom-left secondary vortex, which excess diffusion destroys
 first while the strong primary vortex survives.
 
-> **Stated honestly:** the Re = 1000 run reached `dω = 5.8e-06` against `1e-7`
-> for the other two cases. Some of that 38 % may be incomplete convergence
-> rather than numerical viscosity. The two have not yet been separated.
+### The test that settles it
+
+If the error is the upwind scheme's own first-order term, then removing that
+term should recover the benchmark. In the [report](report/) the solver was run
+at all seven of Ghia's Reynolds numbers on grids up to 257×257, and the deficit
+in vortex strength does fall at **first order in `Δx`** — observed order 0.85 at
+Re = 400 and 0.72 at Re = 1000. Extrapolating to `Δx = 0`:
+
+| Re | extrapolated `ψ_min` | Ghia | difference |
+|---|---|---|---|
+| 400 | −0.113958 | −0.113909 | **0.04 %** |
+| 1000 | −0.116752 | −0.117929 | **1.0 %** |
+
+The disagreement is the discretisation, measured and then removed.
+
+> **And where it does not work.** At Re ≥ 3200 no grid reproduces the benchmark
+> flow, and first-order extrapolation still misses by −24 % and −53 % at
+> Re = 5000 and 10000. Numerical viscosity does not explain that regime; the
+> report says so and lists the tests that would settle it rather than claiming
+> an answer it does not have.
 
 ---
 
@@ -106,6 +139,24 @@ second question — and gives two results a convergence study is blind to:
   a stability analysis (`|G| ≤ 1` throughout).
 
 All eight closed forms were verified against the stencils themselves to `1e-14`.
+
+### And what a grid study cannot see
+
+The same blind spot appears once more, at the other end of the project, in the
+tool normally used to decide that a CFD result is trustworthy.
+
+At Re ≥ 5000 the centreline `v` computed on 51×51 and on 101×101 agrees to
+**0.012**. That same 101×101 solution differs from Ghia's benchmark by up to
+**0.57**.
+
+> **Judged by `v` alone, those solutions would have been declared
+> grid-independent** — while being wrong by roughly fifty times the difference
+> that test reports.
+
+Checking `u` instead gives 0.12, and `ψ_min` 22–25 %, so even within the grid
+study the quantity chosen changes the verdict. A grid study measures how much an
+answer moves when the grid changes. It cannot show the answer is right. That
+takes an independent result, and more than one quantity from it.
 
 ---
 
@@ -139,7 +190,9 @@ Four things that cost me time, and are written up where they happened:
 - *A test that cannot fail is not a test.* My first frozen-boundary check used
   `sin(πx)`, where the boundary value is zero either way.
 
-Further reading, including every paper used, is in [`RESOURCES.md`](RESOURCES.md).
+The long form of all of this — derivations, all twenty-one cavity runs, and a
+chapter on the mistakes — is the report in [`report/`](report/). Further
+reading, including every paper used, is in [`RESOURCES.md`](RESOURCES.md).
 
 ---
 
@@ -157,8 +210,21 @@ python3 runs/compare_all.py          # Ghia error tables from the saved runs
 python3 runs/make_figures.py         # regenerate this module's figures
 ```
 
-Every figure in this repository regenerates from committed data —
-`figures/make_hero.py` and `figures/make_spectral.py` build the three above.
+Every figure a module generates for itself regenerates from committed data:
+`figures/make_hero.py` and `figures/make_spectral.py` build the ones above, and
+each module has its own `make_figures.py`.
+
+The figures carried over from the report are listed in
+[`report/README.md`](report/README.md); **17 of those 28 regenerate from nothing
+but numpy and matplotlib** in about 25 seconds:
+
+```bash
+cd report
+python3 -c "import make_all_figures as m; m.make_schematics(); m.make_journey(); m.make_overflow()"
+```
+
+Of the remaining 11, ten read the cavity run archive — several hundred
+megabytes, not in this repository — and one is a screenshot.
 
 ---
 

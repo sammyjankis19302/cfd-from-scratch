@@ -110,6 +110,55 @@ numerical one**, and here it pointed straight at the theory rather than the code
 
 ---
 
+## The two original runs
+
+![Inviscid Burgers: sin(pi x) turned into a sawtooth at t = 1](figures/report/burgers-inviscid.png)
+
+*Figure 6.1 of the [report](../report/) — `1D_advection_nonlinear.py`, 1001
+points, `Δt = 0.001`, upwinding on the sign of `u`.*
+
+`sin(πx)` carried by itself for one time unit. Each crest overtakes the trough
+ahead of it until the profile is vertical, and after that the scheme holds the
+front in a few cells as a sawtooth. **The upwind direction is no longer a
+property of the equation** — `c` has been replaced by `u`, which changes sign
+twice per wavelength, so the stencil has to be chosen point by point and step by
+step. That `if/else` is the advection scheme of the cavity solver in
+[module 06](../06-lid-driven-cavity/).
+
+### The lopsided waves
+
+![Viscous Burgers at nu = 0.1: troughs reach -0.49, peaks only +0.21](figures/report/burgers-viscous.png)
+
+*Figure 7.1 of the [report](../report/) — the same problem with `ν = 0.1` added,
+101 points, and **backward differencing everywhere**, including where `u < 0`.*
+
+This run did not blow up and I saw nothing wrong with it at the time. The figure
+shows it anyway. The exact solution inherits the antisymmetry of its initial
+condition, `u(10 − x, t) = −u(x, t)`: **the troughs must be exactly as deep as
+the peaks are high.** These reach **−0.49 and +0.21**.
+
+The arithmetic is the modified equation from
+[module 01](../01-linear-advection/), applied twice with opposite signs. With
+`Δx = 0.1` and `|u| ≤ 1`, the backward difference adds a numerical viscosity of
+up to `|u|Δx/2 = 0.05` where `u > 0` — and where `u < 0` that same stencil is
+*downwind*, so it **subtracts** 0.05 instead. One half of every wave felt a
+viscosity of up to 0.15, the other as little as 0.05.
+
+The scheme stayed stable only because the physical `ν = 0.1` was larger than the
+0.05 the wrong stencil was removing, so the total never went negative. Fixing
+the stencil gives symmetric waves of `±0.27` on the same grid, and `±0.31` on
+one twenty times finer.
+
+> **Physical diffusion can keep a wrong scheme stable. It does not make it
+> right.**
+
+Nothing but knowing what the answer should look like caught this. The symmetry
+was available for free, before the run, from the initial condition alone — which
+is the cheapest kind of check there is and the reason this module has
+`tests/test_equivalence_burgers.py` rather than a visual inspection.
+
+---
+
 ## Code
 
 | File | Purpose |

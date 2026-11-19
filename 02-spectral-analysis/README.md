@@ -143,6 +143,24 @@ Each stencil plotted on its own, including the second-derivative operators:
 
 ![second derivative](figures/second_derivative.png)
 
+### Where the result first appeared
+
+![Numerical wavenumbers of the eight stencils, first and second derivative](figures/report/numerical-wavenumbers.png)
+
+*Figure 4.1 of the [report](../report/) — all eight stencils of both derivatives
+on two axes, drawn on 20 August from `order1.py` and `order2.py`.*
+
+The three-curves-in-one problem shows up here too, and the first fix for it was
+blunt: FD, BD and CD-2 were drawn at line widths **8, 5 and 2** so that each
+stayed visible under the next. Naming them as a single curve, as the panel above
+does, says the same thing without the trick.
+
+Reading the curves is what produces the two numbers in the table: **25.6 points
+per wavelength** for a phase error under one per cent with FD, BD or CD-2, and
+**8.3** with CD-4. Two formal orders of accuracy, one dispersion relation — the
+extra order of CD-2 over FD and BD comes from cancelling the *imaginary* part,
+not from transporting waves any more faithfully.
+
 ## Running
 
 ```bash

@@ -59,6 +59,27 @@ def numerical_viscosity(u_mag, dx, dt):
     return u_mag * dx * (1.0 - C) / 2.0
 
 
+def steady_ratio(Re, dx, L=1.0):
+    """nu_num / nu for a CONVERGED steady cavity solution: Re * dx / 2.
+
+    The (1 - C) factor above is the time step's share of nu_num, and a steady
+    solution does not depend on the time step at all: once u^{n+1} = u^n the
+    scheme is solving the steady equation, and C drops out. Substituting
+    nu = U L / Re and u_mag -> U into nu_num = |u| dx / 2 leaves
+
+        nu_num / nu = Re dx / 2          (dx in units of L)
+
+    with no dt in it. That is the number to quote against a converged run, and
+    it is what organises the Ghia comparison below. Use numerical_viscosity()
+    instead when asking what the scheme is doing WHILE it marches: there the
+    (1 - C) factor is real, and it is why shrinking dt makes things worse.
+
+    The two agree when C -> 0 and differ by exactly (1 - C) otherwise, so the
+    steady ratio is also the upper bound on the marching one.
+    """
+    return Re * (dx / L) / 2.0
+
+
 def cell_reynolds(u_mag, dx, nu):
     """Re_cell = |u| dx / nu -- the grid Peclet number for this problem.
 

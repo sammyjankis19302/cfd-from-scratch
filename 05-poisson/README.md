@@ -11,6 +11,14 @@ module 06.
 Three iterative methods on the five-point stencil derived in module 01, all
 sharing one update and differing only in **which values they read on the right**.
 
+![The five-point stencil and the Jacobi update](figures/report/five-point-stencil.png)
+
+*The whole method in one line. An elliptic equation has no time to march in —
+every point depends on every other at the same instant — so it has to be settled
+by iteration instead. A Jacobi sweep replaces each point by the average of its
+four neighbours plus `h²ω/4`, reading only values from the previous sweep.
+Figure 8.1 of the [report](../report/).*
+
 ![Iteration scaling and the residual-versus-change gap](figures/iterative_solvers.png)
 
 *Left: iteration count is a complexity class, not a constant factor. Doubling the
@@ -108,6 +116,42 @@ converged to `1e-5` has a residual of `0.26`.
 
 This is the kind of defect that produces a Ghia comparison that is subtly wrong
 with no visible cause. Every solver in `src/poisson.py` tests the residual.
+
+---
+
+## The first two elliptic runs
+
+![Laplace on 11 by 11, and Poisson after 5 and after 20000 sweeps](figures/report/laplace-and-poisson.png)
+
+*Figure 8.2 of the [report](../report/), from `2D_laplas_Jacobi.py` (2 September)
+and `2D_Poisson.py` (8 September).*
+
+**(a) A test with an answer I could check by hand.** Laplace on `11 × 11`, one
+side held at 1 and three at 0. Rotate that problem four times and add the four
+solutions: every side is now at 1, so the sum is 1 everywhere, and by symmetry
+each of the four contributes equally. **The centre must be exactly `1/4`.** The
+solver returns **0.2499999981**.
+
+No reference solution, no benchmark, no manufactured source — just a symmetry
+argument that pins one number exactly. It is the cheapest honest test in this
+repository.
+
+**(b, c) The run I labelled `diverged heheheh`.** A square patch of `ω = 1` on
+`101 × 101`, capped at five sweeps. It had not diverged. After five sweeps the
+change per sweep was still *exactly* 0.0025 — which is `h²ω/4`, precisely what
+one sweep adds at the centre of the source — because the solution had barely
+started to spread. Nothing was growing. Panel (b) is **3 % of the answer**:
+`ψ_max = 0.0125` against **0.4266** after 20000 sweeps in panel (c), on the same
+colour scale.
+
+> **Diverging, not having converged yet, and having converged are three
+> different states.** My message confused the first two.
+
+This is the same confusion as the stopping test above, met from the other side:
+there I trusted a small change per sweep, here I distrusted one. Both come from
+reading the change per sweep as if it were the error. It is `h²/4` times the
+residual — a factor of 400 on this grid (`L = 10`, 101 points, `h = 0.1`), and
+40000 on the `101²` unit-square grid the cavity runs on.
 
 ---
 
